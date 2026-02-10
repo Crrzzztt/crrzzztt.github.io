@@ -1,0 +1,75 @@
+‎<!DOCTYPE html>
+‎<html lang="en">
+‎<head>
+‎<meta charset="UTF-8">
+‎<title>Curse Word Tracker</title>
+‎<style>
+‎  body { font-family: Arial; padding: 20px; }
+‎  button { margin: 5px; padding: 8px 12px; }
+‎</style>
+‎</head>
+‎<body>
+‎
+‎<h1>Curse Word Counter</h1>
+‎<div id="app"></div>
+‎
+‎<script type="module">
+‎import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+‎import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+‎
+‎const firebaseConfig = {
+‎  apiKey: "AIzaSyB-EFOZcSUXSEG84dae5oLK4AAGbflvZNA",
+‎  authDomain: "YOUR_PROJECT.firebaseapp.com",
+‎  projectId: "YOUR_PROJECT"
+‎};
+‎
+‎const app = initializeApp(firebaseConfig);
+‎const db = getFirestore(app);
+‎
+‎const people = ["Alex", "Jamie", "Chris"];
+‎const curses = ["f-word", "s-word", "b-word"];
+‎const ref = doc(db, "tracker", "counts");
+‎
+‎async function init() {
+‎  const snap = await getDoc(ref);
+‎  if (!snap.exists()) {
+‎    const base = {};
+‎    people.forEach(p => {
+‎      base[p] = {};
+‎      curses.forEach(c => base[p][c] = 0);
+‎    });
+‎    await setDoc(ref, base);
+‎  }
+‎  render();
+‎}
+‎
+‎async function increment(person, curse) {
+‎  await updateDoc(ref, {
+‎    [`${person}.${curse}`]: (await getDoc(ref)).data()[person][curse] + 1
+‎  });
+‎  render();
+‎}
+‎
+‎async function render() {
+‎  const data = (await getDoc(ref)).data();
+‎  const appDiv = document.getElementById("app");
+‎  appDiv.innerHTML = "";
+‎
+‎  people.forEach(p => {
+‎    const div = document.createElement("div");
+‎    div.innerHTML = `<h3>${p}</h3>`;
+‎    curses.forEach(c => {
+‎      const btn = document.createElement("button");
+‎      btn.textContent = `${c}: ${data[p][c]}`;
+‎      btn.onclick = () => increment(p, c);
+‎      div.appendChild(btn);
+‎    });
+‎    appDiv.appendChild(div);
+‎  });
+‎}
+‎
+‎init();
+‎</script>
+‎
+‎</body>
+‎</html>
